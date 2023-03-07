@@ -37,6 +37,13 @@
             android:layout_marginEnd="138dp"
             android:layout_marginBottom="222dp"
             android:text="View Places" />
+
+        <TextView
+            android:id="@+id/test2"
+            android:layout_width="match_parent"
+            android:layout_height="50px"
+            android:text="TextView" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

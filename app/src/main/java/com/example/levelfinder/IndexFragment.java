@@ -1,10 +1,13 @@
 package com.example.levelfinder;
 
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,9 +27,17 @@ public class IndexFragment extends Fragment implements SensorEventListener {
     private Sensor accelerometer;
     private TextView textView;
 
+    private GPSManager gpsLocationManager;
+    private SharedPreferences sharedPreferences;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        gpsLocationManager = new GPSManager(getActivity());
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+
         View view = inflater.inflate(R.layout.fragment_first, container, false);
 
         sensorManager = (SensorManager) getActivity().getSystemService(getActivity().SENSOR_SERVICE);
@@ -66,9 +77,31 @@ public class IndexFragment extends Fragment implements SensorEventListener {
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
     }
 
+
+
+    private void getLocationData() {
+        gpsLocationManager.setOnLocationChangedListener(new GPSManager.OnLocationChangedListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+                saveLocationData(latitude, longitude);
+            }
+        });
+        gpsLocationManager.startLocationUpdates();
+    }
+
+    private void saveLocationData(double latitude, double longitude) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putFloat("latitude", (float) latitude);
+        editor.putFloat("longitude", (float) longitude);
+        editor.apply();
+    }
+
     @Override
     public void onPause() {
         super.onPause();
+        gpsLocationManager.stopLocationUpdates();
         sensorManager.unregisterListener(this);
     }
 

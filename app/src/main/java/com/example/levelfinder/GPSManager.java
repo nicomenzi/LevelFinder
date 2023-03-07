@@ -40,20 +40,6 @@ public class GPSManager implements LocationListener {
         }
     }
 
-    @Override
-    public void onProviderDisabled(String provider) {
-        // Called when the GPS provider is disabled
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-        // Called when the GPS provider is enabled
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-        // Called when the GPS status changes
-    }
 
     public interface OnLocationChangedListener {
         void onLocationChanged(Location location);

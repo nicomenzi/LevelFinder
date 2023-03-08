@@ -1,5 +1,6 @@
 package com.example.levelfinder;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -20,13 +21,14 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.levelfinder.databinding.FragmentFirstBinding;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class IndexFragment extends Fragment implements SensorEventListener {
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private TextView textView;
-
-    private TextView test;
 
     private GPSManager gpsLocationManager;
     private SharedPreferences sharedPreferences;
@@ -40,7 +42,8 @@ public class IndexFragment extends Fragment implements SensorEventListener {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         gpsLocationManager = new GPSManager(getActivity());
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+
 
         binding = FragmentFirstBinding.inflate(inflater, container, false);
         View view = binding.getRoot();
@@ -50,8 +53,6 @@ public class IndexFragment extends Fragment implements SensorEventListener {
 
         textView = binding.coordinates;
         textView.setText("Accelerometer:\n" + "X: " + 0 + "\nY: " + 0 + "\nZ: " + 0);
-
-        test = binding.test2;
 
         // start sensor listener
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
@@ -74,11 +75,8 @@ public class IndexFragment extends Fragment implements SensorEventListener {
             getLocationData();
             System.out.println("Location data saved");
             // print location data
-            float latitude = sharedPreferences.getFloat("latitude", 0);
-            float longitude = sharedPreferences.getFloat("longitude", 0);
-            System.out.println("Latitude: " + latitude);
-            System.out.println("Longitude: " + longitude);
-            test.setText("Latitude: " + latitude + "\nLongitude: " + longitude);
+
+            System.out.println(sharedPreferences.getStringSet("coordinates", new HashSet<String>()));
             done = true;
         }
         if (x > 1 || x < -1 || y > 1 || y < -1) {
@@ -114,23 +112,29 @@ public class IndexFragment extends Fragment implements SensorEventListener {
     }
 
     private void getLocationData() {
-        gpsLocationManager.setOnLocationChangedListener(new GPSManager.OnLocationChangedListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                double latitude = location.getLatitude();
-                double longitude = location.getLongitude();
-                saveLocationData(latitude, longitude);
-            }
-        });
-        gpsLocationManager.startLocationUpdates();
+            gpsLocationManager.setOnLocationChangedListener(new GPSManager.OnLocationChangedListener() {
+                @Override
+                public void onLocationChanged(Location location) {
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+                    saveLocationData(latitude, longitude);
+                }
+            });
+            gpsLocationManager.startLocationUpdates();
+
+
+
     }
 
     private void saveLocationData(double latitude, double longitude) {
+        Set<String> coordinates = sharedPreferences.getStringSet("coordinates", new HashSet<String>());
+        String coordinateString = latitude + "," + longitude;
+        coordinates.add(coordinateString);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putFloat("latitude", (float) latitude);
-        editor.putFloat("longitude", (float) longitude);
+        editor.putStringSet("coordinates", coordinates);
         editor.apply();
     }
+
 
     @Override
     public void onPause() {

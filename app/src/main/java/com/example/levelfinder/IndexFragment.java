@@ -8,6 +8,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,8 +34,11 @@ public class IndexFragment extends Fragment implements SensorEventListener {
     private GPSManager gpsLocationManager;
     private SharedPreferences sharedPreferences;
 
-    private Boolean done = false;
     private FragmentFirstBinding binding;
+
+    private double latitude;
+    private double longitude;
+    private boolean isLevel = false;
 
 
     @Nullable
@@ -57,6 +61,14 @@ public class IndexFragment extends Fragment implements SensorEventListener {
         // start sensor listener
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
 
+        gpsLocationManager.startLocationUpdates();
+        gpsLocationManager.setOnLocationChangedListener(new GPSManager.OnLocationChangedListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+            }
+        });
         return view;
     }
 
@@ -71,17 +83,16 @@ public class IndexFragment extends Fragment implements SensorEventListener {
         textView.setText("Accelerometer:\n" + "X: " + x + "\nY: " + y + "\nZ: " + z);
 
 
-        if ((x < 1 && x > -1 && y < 1 && y > -1 ) && done == false) {
-            getLocationData();
-            System.out.println("Location data saved");
-            // print location data
+        if ((x < 1 && x > -1 && y < 1 && y > -1 )&& !isLevel) {
+            saveLocationData(latitude, longitude);
+            isLevel = true;
 
-            System.out.println(sharedPreferences.getStringSet("coordinates", new HashSet<String>()));
-            done = true;
+
         }
         if (x > 1 || x < -1 || y > 1 || y < -1) {
-            done = false;
+            isLevel = false;
         }
+
 
         // update chart
 
@@ -111,20 +122,6 @@ public class IndexFragment extends Fragment implements SensorEventListener {
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
     }
 
-    private void getLocationData() {
-            gpsLocationManager.setOnLocationChangedListener(new GPSManager.OnLocationChangedListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    double latitude = location.getLatitude();
-                    double longitude = location.getLongitude();
-                    saveLocationData(latitude, longitude);
-                }
-            });
-            gpsLocationManager.startLocationUpdates();
-
-
-
-    }
 
     private void saveLocationData(double latitude, double longitude) {
         Set<String> coordinates = sharedPreferences.getStringSet("coordinates", new HashSet<String>());
@@ -133,6 +130,15 @@ public class IndexFragment extends Fragment implements SensorEventListener {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putStringSet("coordinates", coordinates);
         editor.apply();
+        vibrateDevice();
+        System.out.println("Location data saved");
+
+    }
+
+
+    private void vibrateDevice() {
+        Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(100);
     }
 
 

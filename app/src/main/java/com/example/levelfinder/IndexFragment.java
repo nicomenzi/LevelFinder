@@ -45,7 +45,6 @@ public class IndexFragment extends Fragment implements SensorEventListener {
         gpsLocationManager = new GPSManager(getActivity());
         sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
 
-
         binding = FragmentFirstBinding.inflate(inflater, container, false);
         View view = binding.getRoot();
 
@@ -54,10 +53,8 @@ public class IndexFragment extends Fragment implements SensorEventListener {
 
         textView = binding.coordinates;
         textView.setText("Accelerometer:\n" + "X: " + 0 + "\nY: " + 0 + "\nZ: " + 0);
-
         // start sensor listener
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
-
         gpsLocationManager.setOnLocationChangedListener(new GPSManager.OnLocationChangedListener() {
             @Override
             public void onLocationChanged(Location location) {
